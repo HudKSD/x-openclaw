@@ -83,6 +83,7 @@ import {
 import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { startGatewayModelPricingRefresh } from "./model-pricing-cache.js";
 import { NodeRegistry } from "./node-registry.js";
+import { resolveGatewayRuntimeProfile, type GatewayRuntimeProfile } from "./runtime-profile.js";
 import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import { createChannelManager } from "./server-channels.js";
 import {
@@ -350,6 +351,12 @@ export type GatewayServerOptions = {
    */
   allowCanvasHostInTests?: boolean;
   /**
+   * Runtime profile for startup composition.
+   * - full: current OpenClaw behavior
+   * - minimal-runtime: keep core runtime/gateway/plugins/skills, but do not auto-start channels
+   */
+  runtimeProfile?: GatewayRuntimeProfile;
+  /**
    * Test-only: override the setup wizard runner.
    */
   wizardRunner?: (
@@ -365,6 +372,10 @@ export async function startGatewayServer(
 ): Promise<GatewayServer> {
   const minimalTestGateway =
     process.env.VITEST === "1" && process.env.OPENCLAW_TEST_MINIMAL_GATEWAY === "1";
+  const runtimeProfile = resolveGatewayRuntimeProfile({
+    explicitProfile: opts.runtimeProfile,
+    env: process.env,
+  });
 
   // Ensure all default port derivations (browser/canvas) see the actual runtime port.
   process.env.OPENCLAW_GATEWAY_PORT = String(port);
@@ -1151,6 +1162,10 @@ export async function startGatewayServer(
     broadcast,
     context: gatewayRequestContext,
   });
+  if (runtimeProfile !== "full") {
+    log.info(`gateway: runtime profile=${runtimeProfile}`);
+  }
+
   logGatewayStartup({
     cfg: cfgAtStart,
     bindHost,
@@ -1198,6 +1213,7 @@ export async function startGatewayServer(
       pluginRegistry,
       defaultWorkspaceDir,
       deps,
+      runtimeProfile,
       startChannels,
       log,
       logHooks,

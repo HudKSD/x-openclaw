@@ -160,6 +160,8 @@ describe("gateway run option collisions", () => {
       "run",
       "--token",
       "tok_run",
+      "--runtime-profile",
+      "minimal-runtime",
       "--allow-unconfigured",
       "--ws-log",
       "full",
@@ -175,6 +177,7 @@ describe("gateway run option collisions", () => {
     expect(startGatewayServer).toHaveBeenCalledWith(
       18789,
       expect.objectContaining({
+        runtimeProfile: "minimal-runtime",
         auth: expect.objectContaining({
           token: "tok_run",
         }),
@@ -190,6 +193,16 @@ describe("gateway run option collisions", () => {
       expect.objectContaining({
         bind: "loopback",
       }),
+    );
+  });
+
+  it("prints supported runtime profiles on invalid --runtime-profile", async () => {
+    await expect(
+      runGatewayCli(["gateway", "run", "--runtime-profile", "bad-profile", "--allow-unconfigured"]),
+    ).rejects.toThrow("__exit__:1");
+
+    expect(runtimeErrors).toContain(
+      'Invalid --runtime-profile (use "full", "minimal", "minimal-runtime", or "custom-app")',
     );
   });
 
