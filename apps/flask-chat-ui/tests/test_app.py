@@ -70,6 +70,13 @@ def test_bootstrap_lists_agents_and_sessions(client):
     assert payload["sessions"][0]["displayName"] == "Main chat"
 
 
+def test_healthz(client):
+    response = client.get("/healthz")
+    payload = response.get_json()
+    assert response.status_code == 200
+    assert payload == {"ok": True}
+
+
 def test_create_session_and_reset(client):
     created = client.post("/api/sessions", json={"agentId": "coding"}).get_json()
     session_key = created["session"]["key"]

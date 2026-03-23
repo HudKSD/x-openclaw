@@ -90,6 +90,7 @@ class NodeBridgeGatewayService:
 class AppConfig:
     def __init__(self) -> None:
         self.title = os.environ.get("OPENCLAW_UI_TITLE", "OpenClaw Custom UI")
+        self.host = os.environ.get("OPENCLAW_UI_HOST", "127.0.0.1")
         self.gateway_url = os.environ.get("OPENCLAW_UI_GATEWAY_URL", "ws://127.0.0.1:18789")
         self.bridge_path = Path(os.environ.get("OPENCLAW_UI_BRIDGE", str(DEFAULT_BRIDGE)))
         self.node_binary = os.environ.get("OPENCLAW_UI_NODE", "node")
@@ -203,6 +204,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     app_config = AppConfig()
     app.config.update(
         APP_TITLE=app_config.title,
+        APP_HOST=app_config.host,
         GATEWAY_URL=app_config.gateway_url,
         TESTING=False,
     )
@@ -260,6 +262,10 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             )
         except GatewayServiceError as exc:
             return json_error(str(exc), 502)
+
+    @app.get("/healthz")
+    def healthz() -> Response:
+        return jsonify({"ok": True})
 
     @app.get("/api/agents")
     def agents() -> Response:
@@ -373,4 +379,4 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
 if __name__ == "__main__":
     application = create_app()
     port = int(os.environ.get("PORT", "5010"))
-    application.run(host="127.0.0.1", port=port, debug=True)
+    application.run(host=application.config["APP_HOST"], port=port, debug=True)

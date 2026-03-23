@@ -28,6 +28,7 @@ Default Gateway URL:
 
 Optional env vars:
 
+- `OPENCLAW_UI_HOST`
 - `OPENCLAW_UI_GATEWAY_URL`
 - `OPENCLAW_UI_GATEWAY_TOKEN`
 - `OPENCLAW_UI_GATEWAY_PASSWORD`
@@ -44,3 +45,22 @@ For quick UI-only checks without a real Gateway:
 ```bash
 OPENCLAW_UI_MOCK=1 python apps/flask-chat-ui/app.py
 ```
+
+## Docker Compose
+
+`docker-compose.yml` now includes an `openclaw-flask-ui` service that builds a
+small Python + Node image for this app and exposes it on port `5010` by
+default.
+
+Bring the full stack up:
+
+```bash
+docker compose up -d openclaw-gateway openclaw-flask-ui
+```
+
+Then open <http://127.0.0.1:5010>.
+
+Optional env vars for Compose:
+
+- `OPENCLAW_FLASK_UI_PORT` (defaults to `5010`)
+- `OPENCLAW_UI_TITLE`
