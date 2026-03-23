@@ -12,6 +12,11 @@ import {
 } from "../../config/config.js";
 import { hasConfiguredSecretInput } from "../../config/types.secrets.js";
 import { resolveGatewayAuth } from "../../gateway/auth.js";
+import {
+  formatGatewayRuntimeProfileChoices,
+  formatGatewayRuntimeProfileErrorList,
+  normalizeGatewayRuntimeProfile,
+} from "../../gateway/runtime-profile.js";
 import { startGatewayServer } from "../../gateway/server.js";
 import type { GatewayWsLogStyle } from "../../gateway/ws-logging.js";
 import { setGatewayWsLogStyle } from "../../gateway/ws-logging.js";
@@ -38,6 +43,7 @@ import {
 type GatewayRunOpts = {
   port?: unknown;
   bind?: unknown;
+  runtimeProfile?: unknown;
   token?: unknown;
   auth?: unknown;
   password?: unknown;
@@ -61,6 +67,7 @@ const gatewayLog = createSubsystemLogger("gateway");
 const GATEWAY_RUN_VALUE_KEYS = [
   "port",
   "bind",
+  "runtimeProfile",
   "token",
   "auth",
   "password",
@@ -410,6 +417,16 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     defaultRuntime.exit(1);
     return;
   }
+  const runtimeProfileRaw = toOptionString(opts.runtimeProfile);
+  const runtimeProfile = normalizeGatewayRuntimeProfile(runtimeProfileRaw);
+  if (runtimeProfileRaw && !runtimeProfile) {
+    defaultRuntime.error(
+      `Invalid --runtime-profile (use ${formatGatewayRuntimeProfileErrorList()})`,
+    );
+    defaultRuntime.exit(1);
+    return;
+  }
+
   const tailscaleOverride =
     tailscaleMode || opts.tailscaleResetOnExit
       ? {
@@ -425,6 +442,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       start: async () =>
         await startGatewayServer(port, {
           bind,
+          runtimeProfile: runtimeProfile ?? undefined,
           auth: authOverride,
           tailscale: tailscaleOverride,
         }),
@@ -463,6 +481,10 @@ export function addGatewayRunCommand(cmd: Command): Command {
     .option(
       "--bind <mode>",
       'Bind mode ("loopback"|"lan"|"tailnet"|"auto"|"custom"). Defaults to config gateway.bind (or loopback).',
+    )
+    .option(
+      "--runtime-profile <profile>",
+      `Gateway runtime profile (${formatGatewayRuntimeProfileChoices()})`,
     )
     .option(
       "--token <token>",
