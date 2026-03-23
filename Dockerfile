@@ -99,6 +99,32 @@ FROM build AS runtime-assets
 RUN CI=true pnpm prune --prod && \
     find dist -type f \( -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' -o -name '*.map' \) -delete
 
+# ── Stage 2b: Flask chat UI runtime ─────────────────────────────
+FROM ${OPENCLAW_NODE_BOOKWORM_IMAGE} AS flask-ui
+
+WORKDIR /app
+
+RUN --mount=type=cache,id=openclaw-flask-ui-apt-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=openclaw-flask-ui-apt-lists,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 curl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/package.json .
+COPY --from=build --chown=node:node /app/src ./src
+COPY --from=build --chown=node:node /app/apps/flask-chat-ui ./apps/flask-chat-ui
+
+RUN ln -sf /usr/bin/python3 /usr/local/bin/python
+
+ENV NODE_ENV=production
+
+USER node
+
+EXPOSE 5010
+
+CMD ["python3", "apps/flask-chat-ui/app.py"]
+
 # ── Runtime base images ─────────────────────────────────────────
 FROM ${OPENCLAW_NODE_BOOKWORM_IMAGE} AS base-default
 ARG OPENCLAW_NODE_BOOKWORM_DIGEST

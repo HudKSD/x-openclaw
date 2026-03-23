@@ -55,6 +55,10 @@ vendor/
 
 # Needed for building the Canvas A2UI bundle during Docker image builds.
 # Keep the rest of apps/ and vendor/ excluded to avoid a large build context.
+# The Flask chat UI is also included because the dedicated Docker build target
+# copies that app into the image.
+!apps/flask-chat-ui/
+!apps/flask-chat-ui/**
 !apps/shared/
 !apps/shared/OpenClawKit/
 !apps/shared/OpenClawKit/Sources/

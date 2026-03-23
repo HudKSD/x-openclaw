@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ app_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-card">
+          <p class="eyebrow">Custom OpenClaw UI</p>
+          <h1>{{ app_title }}</h1>
+          <p class="brand-copy">
+            A focused Flask front end for OpenClaw sessions, agents, and streaming chat.
+          </p>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header compact">
+            <label for="agent-select">Agent</label>
+            <select id="agent-select"></select>
+          </div>
+          <p id="gateway-url" class="muted">Gateway: {{ gateway_url }}</p>
+        </section>
+
+        <section class="panel sessions-panel">
+          <div class="panel-header">
+            <h2>Sessions</h2>
+            <button id="new-session-btn" class="ghost-button">New chat</button>
+          </div>
+          <div id="sessions-empty" class="empty-state hidden">No sessions yet.</div>
+          <div id="session-list" class="session-list"></div>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Session</p>
+            <h2 id="session-title">Choose a chat</h2>
+          </div>
+          <div class="header-actions">
+            <span id="status-pill" class="status-pill">Connecting…</span>
+            <button id="reset-session-btn" class="ghost-button" disabled>Reset</button>
+          </div>
+        </header>
+
+        <section id="chat-log" class="chat-log">
+          <div class="welcome-card">
+            <h3>Ready when you are</h3>
+            <p>
+              Pick an agent, create a session, and start chatting. Replies stream through your
+              Flask app while OpenClaw stays the backend brain.
+            </p>
+          </div>
+        </section>
+
+        <footer class="composer-shell">
+          <form id="composer-form" class="composer-form">
+            <label class="sr-only" for="message-input">Message</label>
+            <textarea
+              id="message-input"
+              placeholder="Ask something…"
+              rows="1"
+              disabled
+            ></textarea>
+            <div class="composer-actions">
+              <button id="stop-btn" type="button" class="ghost-button hidden">Stop</button>
+              <button id="send-btn" type="submit" class="primary-button" disabled>Send</button>
+            </div>
+          </form>
+          <p class="muted composer-help">
+            Enter to send, Shift+Enter for a new line. Streaming updates appear live.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <template id="message-template">
+      <article class="message-row">
+        <div class="message-meta"></div>
+        <div class="message-bubble"></div>
+      </article>
+    </template>
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+</html>
